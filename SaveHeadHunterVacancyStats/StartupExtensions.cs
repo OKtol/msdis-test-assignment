@@ -9,23 +9,19 @@ public static class StartupExtensions
         var baseUrl = Environment.GetEnvironmentVariable("HH_API_URL")
             ?? throw new InvalidOperationException("HH_API_URL missing");
 
-        services.AddHttpClient<HeadHunterClient>()
-            .ConfigureHttpClient(client =>
-            {
-                client.DefaultRequestHeaders.Add("User-Agent", "TestApp/1.0 (oktol.hz@gmail.com)");
-                client.Timeout = TimeSpan.FromSeconds(30);
-            })
-            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        services.AddSingleton<IHeadHunterClient>(sp =>
+        {
+            var httpHandler = new SocketsHttpHandler()
             {
                 PooledConnectionLifetime = TimeSpan.FromMinutes(2),
                 PooledConnectionIdleTimeout = TimeSpan.FromMinutes(1),
                 MaxConnectionsPerServer = 20
-            });
+            };
 
-        services.AddSingleton<IHeadHunterClient>(sp =>
-        {
-            var client = sp.GetRequiredService<IHttpClientFactory>()
-                .CreateClient(nameof(HeadHunterClient));
+            var client = new HttpClient(httpHandler);
+            client.DefaultRequestHeaders.Add("User-Agent", "TestApp/1.0 (oktol.hz@gmail.com)");
+            client.Timeout = TimeSpan.FromSeconds(30);
+
             return new HeadHunterClient(client, baseUrl);
         });
 

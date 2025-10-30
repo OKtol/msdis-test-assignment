@@ -7,6 +7,7 @@ namespace HeadHunterVacancyStats.Infrastructure.Services;
 public class BaseS3Repository : IBaseS3Repository
 {
     private const string _statsFileName = "vacancies_stats.json";
+    private const string _contentType = "application/json; charset=utf-8";
     private readonly string _bucket;
     private readonly IAmazonS3 _client;
 
@@ -43,7 +44,7 @@ public class BaseS3Repository : IBaseS3Repository
             BucketName = _bucket,
             Key = _statsFileName,
             ContentBody = content,
-            ContentType = "application/json; charset=utf-8"
+            ContentType = _contentType
         };
         await _client.PutObjectAsync(put);
     }

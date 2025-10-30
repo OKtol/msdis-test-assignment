@@ -8,17 +8,16 @@ namespace HeadHunterVacancyStats.Infrastructure.Services;
 public class VacancyStatsReaderRepository : IVacancyStatsReaderRepository
 {
     private readonly IBaseS3Repository _repo;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = true
+    };
 
     public VacancyStatsReaderRepository(IBaseS3Repository repo)
     {
         _repo = repo;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true
-        };
     }
 
     public async Task<VacancyStat[]> GetStatsAsync()

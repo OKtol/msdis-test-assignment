@@ -9,21 +9,19 @@ namespace HeadHunterVacancyStats.Infrastructure.Services;
 public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
 {
     private readonly IBaseS3Repository _repo;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true
+    };
 
+    private const int InitialCapacity = 101;
     private static readonly int DefaultConcurrencyLevel = Environment.ProcessorCount * 2;
     private readonly ConcurrentDictionary<string, VacancyStat> _stats;
 
     public VacancyStatsWriterRepository(IBaseS3Repository repo)
     {
         _repo = repo;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        };
-
-        const int InitialCapacity = 101;
         _stats = new ConcurrentDictionary<string, VacancyStat>(DefaultConcurrencyLevel, InitialCapacity);
 
         try
@@ -60,7 +58,8 @@ public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
                     _stats.AddOrUpdate(
                         key: stat.Date,
                         addValue: stat,
-                        updateValueFactory: (k, old) => stat);
+                        updateValueFactory: (k, old) => stat
+                        );
         }
         catch (JsonException) { throw; }
         catch (Exception ex) when (ex is not InvalidOperationException)
@@ -83,7 +82,7 @@ public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
                 addValue: stat,
                 updateValueFactory: (k, old) => stat);
 
-            await SaveStatsAsync();
+            await SaveToStorageAsync();
         }
         catch (AmazonS3Exception ex)
         {
@@ -95,7 +94,7 @@ public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
         }
     }
 
-    private async Task SaveStatsAsync()
+    private async Task SaveToStorageAsync()
     {
         var orderedStats = _stats.Values
             .OrderBy(x => x.Date)

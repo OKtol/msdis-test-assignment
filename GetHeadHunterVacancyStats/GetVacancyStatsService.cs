@@ -12,15 +12,8 @@ public class GetVacancyStatsService
         _repository = repository;
     }
 
-    public async Task<VacancyStat[]> GetStatsAsync()
+    public Task<VacancyStat[]> GetStatsAsync()
     {
-        try
-        {
-            return await _repository.GetStatsAsync();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to retrieve vacancy stats", ex);
-        }
+        return _repository.GetStatsAsync();
     }
 }

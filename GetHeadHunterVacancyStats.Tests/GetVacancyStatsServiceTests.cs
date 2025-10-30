@@ -1,7 +1,6 @@
 using HeadHunterVacancyStats.Domain.Models;
 using HeadHunterVacancyStats.Infrastructure.Interfaces;
 using Moq;
-using System.Text.Json;
 
 namespace GetHeadHunterVacancyStats.Tests;
 
@@ -34,18 +33,5 @@ public class GetVacancyStatsServiceTests
         Assert.Single(result);
         Assert.Equal("2025-01-01", result[0].Date);
         Assert.Equal(42, result[0].Vacancies);
-    }
-
-    [Fact]
-    public async Task GetStatsAsync_RepositoryError_ThrowsException()
-    {
-        // Arrange
-        _readerMock.Setup(x => x.GetStatsAsync())
-                   .ThrowsAsync(new Exception("Test error"));
-
-        // Act & Assert
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.GetStatsAsync());
-        Assert.Contains("Failed to retrieve vacancy stats", ex.Message);
     }
 }

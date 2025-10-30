@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="GetHeadHunterVacancyStats.Tests/GetHeadHunterVacancyStats.Tests.csproj" Id="86dee2c7-6d73-4183-ad93-bc919b1aa563" />
+  <Project Path="GetHeadHunterVacancyStats/GetHeadHunterVacancyStats.csproj" />
+  <Project Path="HeadHunterVacancyStats.Domain.Tests/HeadHunterVacancyStats.Domain.Tests.csproj" Id="3623d88b-50da-49f5-81e7-f2083d5640e2" />
+  <Project Path="HeadHunterVacancyStats.Domain/HeadHunterVacancyStats.Domain.csproj" Id="b777d6a8-0f4a-41d9-aaf3-ab6736f07d16" />
+  <Project Path="HeadHunterVacancyStats.Infrastructure.Tests/HeadHunterVacancyStats.Infrastructure.Tests.csproj" Id="ce12ccd3-b54b-41cc-aa7a-6e8e682a4b7a" />
+  <Project Path="HeadHunterVacancyStats.Infrastructure/HeadHunterVacancyStats.Infrastructure.csproj" Id="471cad86-52f3-4cf9-923b-aad464cdd73c" />
+  <Project Path="SaveHeadHunterVacancyStats.Tests/SaveHeadHunterVacancyStats.Tests.csproj" Id="9e321208-81c7-48e4-a275-93ff895cb3b1" />
+  <Project Path="SaveHeadHunterVacancyStats/SaveHeadHunterVacancyStats.csproj" />
+</Solution>

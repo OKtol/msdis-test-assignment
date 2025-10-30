@@ -31,10 +31,9 @@ public class GetVacancyStatsServiceTests
         var result = await _service.GetStatsAsync();
 
         // Assert
-        var json = JsonSerializer.Deserialize<JsonElement>(result);
-        Assert.Single(json.EnumerateArray());
-        Assert.Equal("2025-01-01", json[0].GetProperty("date").GetString());
-        Assert.Equal(42, json[0].GetProperty("vacancies").GetInt32());
+        Assert.Single(result);
+        Assert.Equal("2025-01-01", result[0].Date);
+        Assert.Equal(42, result[0].Vacancies);
     }
 
     [Fact]

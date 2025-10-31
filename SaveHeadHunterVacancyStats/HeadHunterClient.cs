@@ -15,12 +15,18 @@ public class HeadHunterClient : IHeadHunterClient
         _baseUrl = baseUrl;
     }
 
-    public async Task<int> GetCSharpVacanciesFoundAsync()
+    public async Task<int> GetVacanciesFoundAsync(string searchText)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(searchText);
+
+        var escapedSearchText = searchText.Contains('%') 
+            ? searchText 
+            : Uri.EscapeDataString(searchText);
+        var requestUri = BuildRequestUri(escapedSearchText);
+
         try
         {
-            using var resp = await _http.GetAsync(_baseUrl);
-
+            using var resp = await _http.GetAsync(requestUri);
             if (!resp.IsSuccessStatusCode)
                 throw new InvalidOperationException($"HH API request failed: {resp.StatusCode}");
 
@@ -36,6 +42,27 @@ public class HeadHunterClient : IHeadHunterClient
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
             throw new InvalidOperationException("Failed to get vacancy count from HH API", ex);
+        }
+    }
+
+    private Uri BuildRequestUri(string escapedSearchText)
+    {
+        try
+        {
+            var ub = new UriBuilder(_baseUrl);
+            var existing = ub.Query;
+            var currentQuery = string.IsNullOrEmpty(existing) ? "" : existing.TrimStart('?');
+
+            var newQuery = string.IsNullOrEmpty(currentQuery)
+                ? $"text={escapedSearchText}"
+                : currentQuery + $"&text={escapedSearchText}";
+
+            ub.Query = newQuery;
+            return ub.Uri;
+        }
+        catch (UriFormatException ex)
+        {
+            throw new InvalidOperationException("Failed to construct HH API request URI", ex);
         }
     }
 }

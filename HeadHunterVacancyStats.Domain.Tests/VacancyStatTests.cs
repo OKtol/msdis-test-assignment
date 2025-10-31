@@ -9,34 +9,39 @@ public class VacancyStatTests
     {
         // Arrange
         var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        var vacancies = 42;
+        var jobs = new Jobs { CSharpVacanciesCount = 42 };
 
         // Act
-        var stat = VacancyStat.Create(date, vacancies);
+        var stat = new VacancyStat { Date = date, Vacancies = jobs };
 
         // Assert
         Assert.Equal(date, stat.Date);
-        Assert.Equal(vacancies, stat.Vacancies);
+        Assert.Same(jobs, stat.Vacancies);
+        Assert.Equal(42, stat.Vacancies.CSharpVacanciesCount);
     }
 
     [Theory]
-    [InlineData(null, "Date cannot be empty")]
-    [InlineData("", "Date cannot be empty")]
-    [InlineData("invalid-date", "Date must be in format yyyy-MM-dd")]
-    public void Create_InvalidDate_ThrowsArgumentException(string? date, string expectedMessage)
+    [InlineData(null, typeof(ArgumentNullException))]
+    [InlineData("", typeof(ArgumentException))]
+    [InlineData("invalid-date", typeof(ArgumentException))]
+    public void Create_InvalidDate_ThrowsArgumentException(string? date, Type exceptionType)
     {
         // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() =>
-            VacancyStat.Create(date!, 42));
-        Assert.Contains(expectedMessage, ex.Message);
+        var ex = Assert.Throws(exceptionType, () =>
+        {
+            // use null-forgiving where needed; for empty/invalid date pass as-is
+            var _ = new VacancyStat { Date = date!, Vacancies = new Jobs { CSharpVacanciesCount = 1 } };
+        });
+
+        Assert.IsType(exceptionType, ex);
     }
 
     [Fact]
-    public void Create_NegativeVacancies_ThrowsArgumentException()
+    public void CreatingWithoutVacancies_IsNotAllowedByCompilerButRuntimeCheckNotNeeded()
     {
-        // Act & Assert
-        var ex = Assert.Throws<ArgumentException>(() =>
-            VacancyStat.Create("2025-01-01", -1));
-        Assert.Contains("Vacancies count cannot be negative", ex.Message);
+        // This test exists to document that Vacancies is required (init-only).
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var stat = new VacancyStat { Date = date, Vacancies = new Jobs { CSharpVacanciesCount = 0 } };
+        Assert.NotNull(stat.Vacancies);
     }
 }

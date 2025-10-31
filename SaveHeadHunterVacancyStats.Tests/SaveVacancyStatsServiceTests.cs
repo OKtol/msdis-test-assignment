@@ -1,3 +1,4 @@
+using HeadHunterVacancyStats.Domain.Models;
 using HeadHunterVacancyStats.Infrastructure.Interfaces;
 using Moq;
 
@@ -15,34 +16,42 @@ public class SaveVacancyStatsServiceTests
     }
 
     [Fact]
-    public async Task SaveTodayStatsAsync_ValidData_SavesAndReturnsOk()
+    public async Task SaveTodayStatsAsync_ValidData_SavesAndReturnsResponse()
     {
         // Arrange
         var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        _clientMock.Setup(x => x.GetCSharpVacanciesFoundAsync())
-                  .ReturnsAsync(42);
-        
-        _writerMock.Setup(x => x.SaveDailyStatsAsync(today, 42))
+        var encodedSearch = "C%23%20Developer"; // as defined on Jobs property
+
+        _clientMock.Setup(x => x.GetVacanciesFoundAsync(encodedSearch))
+                   .ReturnsAsync(917);
+
+        VacancyStat? captured = null;
+        _writerMock.Setup(x => x.SaveDailyStatsAsync(It.IsAny<VacancyStat>()))
+                   .Callback<VacancyStat>(v => captured = v)
                    .Returns(Task.CompletedTask);
 
         // Act
         var result = await _service.SaveTodayStatsAsync();
 
         // Assert
-        Assert.Contains("OK:", result);
-        Assert.Contains(today, result);
-        Assert.Contains("42", result);
-        _writerMock.Verify(x => x.SaveDailyStatsAsync(today, 42), Times.Once);
+        Assert.NotNull(result);
+        Assert.Equal("Data saved successfully", result.Message);
+        Assert.NotNull(captured);
+        Assert.Equal(today, captured!.Date);
+        Assert.Equal(917, captured.Vacancies.CSharpVacanciesCount);
+
+        _writerMock.Verify(x => x.SaveDailyStatsAsync(It.IsAny<VacancyStat>()), Times.Once);
     }
 
     [Fact]
     public async Task SaveTodayStatsAsync_RepositoryError_ThrowsException()
     {
         // Arrange
-        _clientMock.Setup(x => x.GetCSharpVacanciesFoundAsync())
-                  .ReturnsAsync(42);
+        var encodedSearch = "C%23%20Developer";
+        _clientMock.Setup(x => x.GetVacanciesFoundAsync(encodedSearch))
+                   .ReturnsAsync(100);
 
-        _writerMock.Setup(x => x.SaveDailyStatsAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _writerMock.Setup(x => x.SaveDailyStatsAsync(It.IsAny<VacancyStat>()))
                    .ThrowsAsync(new Exception("Test error"));
 
         // Act & Assert

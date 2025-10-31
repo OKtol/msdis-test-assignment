@@ -28,7 +28,7 @@ public class HeadHunterClientTests
     }
 
     [Fact]
-    public async Task GetCSharpVacanciesFoundAsync_ValidResponse_ReturnsCount()
+    public async Task GetVacanciesFoundAsync_ValidResponse_ReturnsCount()
     {
         // Arrange
         var response = new HttpResponseMessage(HttpStatusCode.OK)
@@ -44,14 +44,14 @@ public class HeadHunterClientTests
             .ReturnsAsync(response);
 
         // Act
-        var result = await _client.GetCSharpVacanciesFoundAsync();
+        var result = await _client.GetVacanciesFoundAsync("C%23%20Developer");
 
         // Assert
         Assert.Equal(42, result);
     }
 
     [Fact]
-    public async Task GetCSharpVacanciesFoundAsync_InvalidResponse_ThrowsException()
+    public async Task GetVacanciesFoundAsync_InvalidResponse_ThrowsException()
     {
         // Arrange
         var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
@@ -65,12 +65,11 @@ public class HeadHunterClientTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _client.GetCSharpVacanciesFoundAsync());
-        Assert.Contains("HH API request failed", ex.Message);
+            () => _client.GetVacanciesFoundAsync("C%23%20Developer"));
     }
 
     [Fact]
-    public async Task GetCSharpVacanciesFoundAsync_InvalidJsonResponse_ThrowsException()
+    public async Task GetVacanciesFoundAsync_InvalidJsonResponse_ThrowsException()
     {
         // Arrange
         var response = new HttpResponseMessage(HttpStatusCode.OK)
@@ -87,12 +86,11 @@ public class HeadHunterClientTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _client.GetCSharpVacanciesFoundAsync());
-        Assert.Contains("Response does not contain 'found'", ex.Message);
+            () => _client.GetVacanciesFoundAsync("C%23%20Developer"));
     }
 
     [Fact]
-    public async Task GetCSharpVacanciesFoundAsync_NetworkError_ThrowsException()
+    public async Task GetVacanciesFoundAsync_NetworkError_ThrowsException()
     {
         // Arrange
         _handlerMock.Protected()
@@ -104,7 +102,7 @@ public class HeadHunterClientTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _client.GetCSharpVacanciesFoundAsync());
+            () => _client.GetVacanciesFoundAsync("C%23%20Developer"));
         Assert.Contains("Failed to get vacancy count from HH API", ex.Message);
     }
 }

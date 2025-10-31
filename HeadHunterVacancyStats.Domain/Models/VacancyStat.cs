@@ -13,9 +13,7 @@ public class VacancyStat
         get => _date;
         init
         {
-            if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("Date cannot be empty", nameof(value));
-
+            ArgumentException.ThrowIfNullOrWhiteSpace(value);
             if (!DateTime.TryParseExact(value, DateFormat, DateFormatInfo,
                 DateTimeStyles.None, out _))
             {
@@ -25,17 +23,5 @@ public class VacancyStat
         }
     }
 
-    public int Vacancies { get; init; }
-
-    public static VacancyStat Create(string date, int vacancies)
-    {
-        if (vacancies < 0)
-            throw new ArgumentException("Vacancies count cannot be negative", nameof(vacancies));
-
-        return new VacancyStat
-        {
-            Date = date,
-            Vacancies = vacancies
-        };
-    }
+    public required Jobs Vacancies { get; init; }
 }

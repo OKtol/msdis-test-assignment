@@ -1,6 +1,9 @@
+using GetHeadHunterVacancyStats;
+using GetHeadHunterVacancyStats.Models;
 using HeadHunterVacancyStats.Domain.Models;
 using HeadHunterVacancyStats.Infrastructure.Interfaces;
 using Moq;
+using Xunit;
 
 namespace GetHeadHunterVacancyStats.Tests;
 
@@ -15,12 +18,16 @@ public class GetVacancyStatsServiceTests
     }
 
     [Fact]
-    public async Task GetStatsAsync_HasData_ReturnsSerializedJson()
+    public async Task GetStatsAsync_HasData_ReturnsResponseWithStats()
     {
         // Arrange
         var stats = new[]
         {
-            VacancyStat.Create("2025-01-01", 42)
+            new VacancyStat
+            {
+                Date = "2025-01-01",
+                Vacancies = new Jobs { CSharpVacanciesCount = 42 }
+            }
         };
 
         _readerMock.Setup(x => x.GetStatsAsync())
@@ -30,8 +37,10 @@ public class GetVacancyStatsServiceTests
         var result = await _service.GetStatsAsync();
 
         // Assert
-        Assert.Single(result);
-        Assert.Equal("2025-01-01", result[0].Date);
-        Assert.Equal(42, result[0].Vacancies);
+        Assert.NotNull(result);
+        Assert.Equal("Data load successfully", result.Message);
+        Assert.Single(result.Vacancies);
+        Assert.Equal("2025-01-01", result.Vacancies[0].Date);
+        Assert.Equal(42, result.Vacancies[0].Vacancies.CSharpVacanciesCount);
     }
 }

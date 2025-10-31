@@ -28,10 +28,6 @@ public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
         {
             InitializeAsync().GetAwaiter().GetResult();
         }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            // First run, empty stats is okay
-        }
         catch (AmazonS3Exception ex)
         {
             throw new InvalidOperationException($"Failed to initialize stats data", ex);
@@ -44,22 +40,20 @@ public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
 
     private async Task InitializeAsync()
     {
-        var json = await _repo.GetObjectStringAsync();
-        if (string.IsNullOrEmpty(json))
-            return;
-
         try
         {
+            var json = await _repo.GetObjectStringAsync();
+            if (string.IsNullOrEmpty(json))
+                return;
             var stats = JsonSerializer.Deserialize<VacancyStat[]>(json, _jsonOptions)
                 ?? throw new JsonException("Failed to deserialize vacancy stats: null result");
 
-            if (stats.Length > 0)
-                foreach (var stat in stats)
-                    _stats.AddOrUpdate(
-                        key: stat.Date,
-                        addValue: stat,
-                        updateValueFactory: (k, old) => stat
-                        );
+            foreach (var stat in stats)
+                _stats.AddOrUpdate(
+                    key: stat.Date,
+                    addValue: stat,
+                    updateValueFactory: (k, old) => stat
+                    );
         }
         catch (JsonException) { throw; }
         catch (Exception ex) when (ex is not InvalidOperationException)
@@ -68,19 +62,14 @@ public class VacancyStatsWriterRepository : IVacancyStatsWriterRepository
         }
     }
 
-    public async Task SaveDailyStatsAsync(string date, int vacanciesCount)
+    public async Task SaveDailyStatsAsync(VacancyStat vacancyStat)
     {
-        ArgumentException.ThrowIfNullOrEmpty(date);
-        ArgumentOutOfRangeException.ThrowIfNegative(vacanciesCount);
-
         try
         {
-            var stat = VacancyStat.Create(date, vacanciesCount);
-
             _stats.AddOrUpdate(
-                key: date,
-                addValue: stat,
-                updateValueFactory: (k, old) => stat);
+                key: vacancyStat.Date,
+                addValue: vacancyStat,
+                updateValueFactory: (k, old) => vacancyStat);
 
             await SaveToStorageAsync();
         }

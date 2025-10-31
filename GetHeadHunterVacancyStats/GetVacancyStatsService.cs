@@ -1,4 +1,4 @@
-using HeadHunterVacancyStats.Domain.Models;
+using GetHeadHunterVacancyStats.Models;
 using HeadHunterVacancyStats.Infrastructure.Interfaces;
 
 namespace GetHeadHunterVacancyStats;
@@ -12,8 +12,14 @@ public class GetVacancyStatsService
         _repository = repository;
     }
 
-    public Task<VacancyStat[]> GetStatsAsync()
+    public async Task<Response> GetStatsAsync()
     {
-        return _repository.GetStatsAsync();
+        var vacansyStats = await _repository.GetStatsAsync();
+
+        return new Response
+        {
+            Message = "Data load successfully",
+            Vacancies = vacansyStats
+        };
     }
 }

@@ -1,4 +1,4 @@
-﻿using Amazon.S3;
+﻿using HeadHunterVacancyStats.Domain.Models;
 using HeadHunterVacancyStats.Infrastructure.Interfaces;
 using HeadHunterVacancyStats.Infrastructure.Services;
 using Moq;
@@ -12,6 +12,7 @@ public class VacancyStatsWriterRepositoryTests
 
     public VacancyStatsWriterRepositoryTests()
     {
+        // By default mock.GetObjectStringAsync returns null so initialization leaves dictionary empty
         _repository = new VacancyStatsWriterRepository(_s3RepoMock.Object);
     }
 
@@ -20,7 +21,7 @@ public class VacancyStatsWriterRepositoryTests
     {
         // Arrange
         var date = "2025-01-01";
-        var count = 42;
+        var stat = new VacancyStat { Date = date, Vacancies = new Jobs { CSharpVacanciesCount = 42 } };
 
         string? capturedJson = null;
         _s3RepoMock.Setup(x => x.PutObjectStringAsync(It.IsAny<string>()))
@@ -28,7 +29,7 @@ public class VacancyStatsWriterRepositoryTests
                    .Returns(Task.CompletedTask);
 
         // Act
-        await _repository.SaveDailyStatsAsync(date, count);
+        await _repository.SaveDailyStatsAsync(stat);
 
         // Assert
         _s3RepoMock.Verify(x => x.PutObjectStringAsync(It.IsAny<string>()), Times.Once);
@@ -41,32 +42,14 @@ public class VacancyStatsWriterRepositoryTests
     public async Task SaveDailyStatsAsync_S3Error_ThrowsException()
     {
         // Arrange
+        var stat = new VacancyStat { Date = "2025-01-01", Vacancies = new Jobs { CSharpVacanciesCount = 42 } };
+
         _s3RepoMock.Setup(x => x.PutObjectStringAsync(It.IsAny<string>()))
-                   .ThrowsAsync(new AmazonS3Exception("Test error"));
+                   .ThrowsAsync(new Amazon.S3.AmazonS3Exception("Test error"));
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _repository.SaveDailyStatsAsync("2025-01-01", 42));
+            () => _repository.SaveDailyStatsAsync(stat));
         Assert.Contains("Failed to save stats data", ex.Message);
-    }
-
-    [Theory]
-    [InlineData(null, typeof(ArgumentNullException))]
-    [InlineData("", typeof(ArgumentException))]
-    public async Task SaveDailyStatsAsync_InvalidDate_ThrowsException(string? date, Type exceptionType)
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync(exceptionType,
-            () => _repository.SaveDailyStatsAsync(date!, 42));
-    }
-
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(-100)]
-    public async Task SaveDailyStatsAsync_NegativeCount_ThrowsException(int count)
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => _repository.SaveDailyStatsAsync("2025-01-01", count));
     }
 }

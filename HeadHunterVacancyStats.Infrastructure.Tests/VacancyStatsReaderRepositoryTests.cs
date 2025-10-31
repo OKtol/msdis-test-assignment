@@ -1,4 +1,3 @@
-using Amazon.S3;
 using HeadHunterVacancyStats.Domain.Models;
 using HeadHunterVacancyStats.Infrastructure.Interfaces;
 using HeadHunterVacancyStats.Infrastructure.Services;
@@ -37,9 +36,11 @@ public class VacancyStatsReaderRepositoryTests
         // Arrange
         var stats = new[]
         {
-            VacancyStat.Create("2025-01-01", 42)
+            new VacancyStat { Date = "2025-01-01", Vacancies = new Jobs { CSharpVacanciesCount = 42 } }
         };
-        var json = JsonSerializer.Serialize(stats);
+
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true };
+        var json = JsonSerializer.Serialize(stats, options);
 
         _s3RepoMock.Setup(x => x.GetObjectStringAsync())
                    .ReturnsAsync(json);
@@ -50,7 +51,7 @@ public class VacancyStatsReaderRepositoryTests
         // Assert
         Assert.Single(result);
         Assert.Equal("2025-01-01", result[0].Date);
-        Assert.Equal(42, result[0].Vacancies);
+        Assert.Equal(42, result[0].Vacancies.CSharpVacanciesCount);
     }
 
     [Fact]
@@ -71,7 +72,7 @@ public class VacancyStatsReaderRepositoryTests
     {
         // Arrange
         _s3RepoMock.Setup(x => x.GetObjectStringAsync())
-                   .ThrowsAsync(new AmazonS3Exception("Test error"));
+                   .ThrowsAsync(new Amazon.S3.AmazonS3Exception("Test error"));
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(

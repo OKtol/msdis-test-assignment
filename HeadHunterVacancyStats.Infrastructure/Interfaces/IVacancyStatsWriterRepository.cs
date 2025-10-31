@@ -1,7 +1,8 @@
-﻿namespace HeadHunterVacancyStats.Infrastructure.Interfaces
+﻿using HeadHunterVacancyStats.Domain.Models;
+
+namespace HeadHunterVacancyStats.Infrastructure.Interfaces;
+
+public interface IVacancyStatsWriterRepository
 {
-    public interface IVacancyStatsWriterRepository
-    {
-        Task SaveDailyStatsAsync(string date, int vacanciesCount);
-    }
+    Task SaveDailyStatsAsync(VacancyStat vacancyStat);
 }

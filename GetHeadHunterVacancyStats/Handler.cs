@@ -1,4 +1,4 @@
-﻿using HeadHunterVacancyStats.Domain.Models;
+﻿using HeadHunterVacancyStats.Domain.Models.HttpResponse;
 using HeadHunterVacancyStats.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,9 +18,18 @@ public class Handler
         _serviceProvider = services.BuildServiceProvider();
     }
 
-    public async Task<VacancyStat[]> FunctionHandler(string input)
+    public async Task<string> FunctionHandler(string input)
     {
-        var service = _serviceProvider.GetRequiredService<GetVacancyStatsService>();
-        return await service.GetStatsAsync();
+        try
+        {
+            var service = _serviceProvider.GetRequiredService<GetVacancyStatsService>();
+            var response = await service.GetStatsAsync();
+
+            return HttpResponseBuilder.Build(response, statusCode: 200);
+        }
+        catch (Exception ex)
+        {
+            return HttpResponseBuilder.BuildError(ex.Message);
+        }
     }
 }

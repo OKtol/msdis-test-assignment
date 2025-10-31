@@ -1,9 +1,8 @@
 ﻿using HeadHunterVacancyStats.Domain.Models;
 
-namespace HeadHunterVacancyStats.Infrastructure.Interfaces
+namespace HeadHunterVacancyStats.Infrastructure.Interfaces;
+
+public interface IVacancyStatsReaderRepository
 {
-    public interface IVacancyStatsReaderRepository
-    {
-        Task<VacancyStat[]> GetStatsAsync();
-    }
+    Task<VacancyStat[]> GetStatsAsync();
 }
